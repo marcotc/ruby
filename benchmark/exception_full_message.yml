@@ -58,10 +58,10 @@ prelude: |
 
   ex = Test.new.call
 benchmark:
-  full_message: ex.full_message
-  full_message_no_highlight: 'ex.full_message(highlight: false)'
-  full_message_top: 'ex.full_message(order: :top)'
-  full_message_bottom: 'ex.full_message(order: :bottom)' # fastest C
+#  full_message: ex.full_message
+#  full_message_no_highlight: 'ex.full_message(highlight: false)'
+#  full_message_top: 'ex.full_message(order: :top)'
+#  full_message_bottom: 'ex.full_message(order: :bottom)' # fastest C
   full_message_no_highlight_order: 'ex.full_message(highlight: false, order: :top)' # fastest overall
-  ruby_impl: full_backtrace(ex)
+#  ruby_impl: full_backtrace(ex)
 loop_count: 1000000
