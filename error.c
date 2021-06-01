@@ -1236,7 +1236,7 @@ exc_s_to_tty_p(VALUE self)
  */
 
 static VALUE
-exc_full_message(int argc, VALUE *argv, VALUE exc)
+exc_full_message_orig(int argc, VALUE *argv, VALUE exc)
 {
     VALUE opt, str, emesg, errat;
     enum {kw_highlight, kw_order, kw_max_};
@@ -1279,6 +1279,77 @@ exc_full_message(int argc, VALUE *argv, VALUE exc)
     rb_error_write(exc, emesg, errat, str, args[kw_highlight], args[kw_order]);
     return str;
 }
+
+
+
+
+
+
+
+
+static void
+exc_custom_backtrace_for(VALUE ex, VALUE backtrace)
+{
+    VALUE trace = rb_get_backtrace(ex);
+    if (NIL_P(trace)) return;
+
+    VALUE first_line;
+    if (RARRAY_LEN(trace) != 0 && !NIL_P(first_line = RARRAY_AREF(trace, 0))) {
+//        VALUE to_s = exc_to_s(first_line);
+        rb_str_append(backtrace, first_line);
+        rb_str_cat_cstr(backtrace, ": ");
+
+        VALUE message = rb_get_message(ex);
+        rb_str_append(backtrace, message);
+        rb_str_cat_cstr(backtrace, " (");
+
+        VALUE class_name = rb_class_name(CLASS_OF(ex));
+        rb_str_append(backtrace, class_name);
+        rb_str_cat_cstr(backtrace, ")");
+    }
+
+    for (int i=1; i<RARRAY_LEN(trace); i++) {
+	VALUE line = RARRAY_AREF(trace, i);
+
+	rb_str_cat_cstr(backtrace, "\n\tfrom ");
+        rb_str_append(backtrace, line);
+    }
+
+  rb_str_cat_cstr(backtrace, "\n");
+}
+
+
+static VALUE
+//exc_custom_full_message(int argc, VALUE *argv, VALUE ex)
+exc_full_message(int argc, VALUE *argv, VALUE ex)
+{
+    VALUE backtrace = rb_str_new_literal(""); // rb_str_new?
+
+    exc_custom_backtrace_for(ex, backtrace);
+
+    // Avoid circular causes
+    VALUE shown_causes = rb_obj_hide(rb_ident_hash_new());
+    rb_hash_aset(shown_causes, ex, Qtrue);
+
+    VALUE cause = rb_attr_get(ex, id_cause);
+    while (!NIL_P(cause) && !rb_hash_has_key(shown_causes, cause)) {
+        exc_custom_backtrace_for(cause, backtrace);
+
+        rb_hash_aset(shown_causes, cause, Qtrue);
+        cause = rb_attr_get(cause, id_cause);
+    }
+
+    return backtrace;
+}
+
+
+
+
+
+
+
+
+
 
 /*
  * call-seq:
@@ -2791,6 +2862,7 @@ Init_Exception(void)
     rb_define_method(rb_eException, "to_s", exc_to_s, 0);
     rb_define_method(rb_eException, "message", exc_message, 0);
     rb_define_method(rb_eException, "full_message", exc_full_message, -1);
+//    rb_define_method(rb_eException, "custom_full_message", exc_custom_full_message, -1);
     rb_define_method(rb_eException, "inspect", exc_inspect, 0);
     rb_define_method(rb_eException, "backtrace", exc_backtrace, 0);
     rb_define_method(rb_eException, "backtrace_locations", exc_backtrace_locations, 0);
