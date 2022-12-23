@@ -7,6 +7,8 @@
 # You can freely distribute/modify this library.
 #
 
+https://en.wikipedia.org/wiki/Monitor_(synchronization)
+
 #
 # In concurrent programming, a monitor is an object or module intended to be
 # used safely by more than one thread.  The defining characteristic of a
@@ -204,6 +206,9 @@ module MonitorMixin
   alias synchronize mon_synchronize
 
   #
+  # call-seq:
+  #   new_cond -> MonitorMixin::ConditionVariable
+  #
   # Creates a new MonitorMixin::ConditionVariable associated with the
   # Monitor object.
   #
@@ -255,6 +260,9 @@ end
 #   end
 #
 class Monitor
+  #
+  # Creates a new MonitorMixin::ConditionVariable associated with +self+.
+  #
   def new_cond
     ::MonitorMixin::ConditionVariable.new(self)
   end

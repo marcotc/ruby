@@ -56,6 +56,13 @@ mc_owner_p(struct rb_monitor *mc)
     return mc->owner == rb_fiber_current();
 }
 
+/*
+ * call-seq:
+ *    monitor.try_enter  -> true or false
+ *
+ * Attempts to obtain the lock and returns immediately. Returns +true+ if the
+ * lock was granted.
+ */
 static VALUE
 monitor_try_enter(VALUE monitor)
 {
@@ -72,6 +79,13 @@ monitor_try_enter(VALUE monitor)
     return Qtrue;
 }
 
+/*
+ * call-seq:
+ *    monitor.enter  -> self
+ *
+ * Attempts to grab the lock and waits if it isn't available.
+ * Raises +ThreadError+ if +monitor+ was locked by the current thread.
+ */
 static VALUE
 monitor_enter(VALUE monitor)
 {
@@ -85,6 +99,7 @@ monitor_enter(VALUE monitor)
     return Qnil;
 }
 
+/* :nodoc: */
 static VALUE
 monitor_check_owner(VALUE monitor)
 {
@@ -95,6 +110,13 @@ monitor_check_owner(VALUE monitor)
     return Qnil;
 }
 
+/*
+ * call-seq:
+ *    monitor.exit    -> nil
+ *
+ * Releases the lock.
+ * Raises +ThreadError+ if +monitor+ wasn't locked by the current thread.
+ */
 static VALUE
 monitor_exit(VALUE monitor)
 {
@@ -112,6 +134,7 @@ monitor_exit(VALUE monitor)
     return Qnil;
 }
 
+/* :nodoc: */
 static VALUE
 monitor_locked_p(VALUE monitor)
 {
@@ -119,6 +142,7 @@ monitor_locked_p(VALUE monitor)
     return rb_mutex_locked_p(mc->mutex);
 }
 
+/* :nodoc: */
 static VALUE
 monitor_owned_p(VALUE monitor)
 {
@@ -166,6 +190,7 @@ monitor_enter_for_cond(VALUE v)
     return Qnil;
 }
 
+/* :nodoc: */
 static VALUE
 monitor_wait_for_cond(VALUE monitor, VALUE cond, VALUE timeout)
 {
@@ -193,6 +218,13 @@ monitor_sync_ensure(VALUE monitor)
     return monitor_exit(monitor);
 }
 
+/*
+ * call-seq:
+ *    monitor.synchronize { ... }    -> result of the block
+ *
+ * Obtains a lock, runs the block, and releases the lock when the block
+ * completes.  See the example under Monitor.
+ */
 static VALUE
 monitor_synchronize(VALUE monitor)
 {
