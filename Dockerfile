@@ -3,7 +3,7 @@
 
 FROM ubuntu:20.04
 
-RUN DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get -y install tzdata
+RUN DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get -y install tzdata && apt-get clean
 
 RUN apt-get update \
   && apt-get install -y build-essential \
@@ -25,4 +25,10 @@ RUN apt-get update \
       python \
       python-dev \
       ruby \
+      bison \
+      gperf \
+      libreadline-dev \
+      libffi-dev \
+      libgmp-dev \
+      rustc \
   && apt-get clean
