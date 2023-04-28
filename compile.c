@@ -9088,9 +9088,14 @@ compile_super(rb_iseq_t *iseq, LINK_ANCHOR *const ret, const NODE *const node, i
 
         if (local_body->param.flags.has_kw) { /* TODO: support keywords */
             int local_size = local_body->local_table_size;
-            argc++;
+//            argc++;
 
-            ADD_INSN1(args, node, putspecialobject, INT2FIX(VM_SPECIAL_OBJECT_VMCORE));
+//            compile_keyword_arg(iseq, args,
+//                                node->nd_args,
+//                                &keywords,
+//                                &flag);
+
+//            ADD_INSN1(args, node, putspecialobject, INT2FIX(VM_SPECIAL_OBJECT_VMCORE));
 
             if (local_body->param.flags.has_kwrest) {
                 int idx = local_body->local_table_size - local_kwd->rest_start;
@@ -9101,17 +9106,44 @@ compile_super(rb_iseq_t *iseq, LINK_ANCHOR *const ret, const NODE *const node, i
                 }
             }
             else {
-                ADD_INSN1(args, node, newhash, INT2FIX(0));
-                flag |= VM_CALL_KW_SPLAT_MUT;
+//                ADD_INSN1(args, node, newhash, INT2FIX(0));
+//                flag |= VM_CALL_KW_SPLAT_MUT;
             }
+
+            keywords =
+                    rb_xmalloc_mul_add(local_kwd->num, sizeof(VALUE), sizeof(struct rb_callinfo_kwarg)); // TODO: memory leak?
+//            VALUE *keywords = kw_arg->keywords;
+//            int i = 0;
+            keywords->keyword_len = local_kwd->num;
+
+//            *keywords = kw_arg; // TODO: remove me
+
+//            for (i = 0; i < local_kwd->num; ++i) {
+////                const NODE *key_node = node->nd_head;
+//                const NODE *val_node = node->nd_next->nd_head;
+//                keywords->keywords[i] = ID2SYM(id);
+////                NO_CHECK(COMPILE(ret, "keyword values", val_node));
+//
+//
+//                ID id = local_kwd->table[i];
+//                int idx = local_size - get_local_var_idx(liseq, id);
+////                ADD_INSN1(args, node, putobject, ID2SYM(id));
+//                ADD_GETLOCAL(args, node, idx, lvar_level);
+//            }
+
+
+
             for (i = 0; i < local_kwd->num; ++i) {
                 ID id = local_kwd->table[i];
                 int idx = local_size - get_local_var_idx(liseq, id);
-                ADD_INSN1(args, node, putobject, ID2SYM(id));
+//                ADD_INSN1(args, node, putobject, ID2SYM(id));
+                keywords->keywords[i] = ID2SYM(id);
                 ADD_GETLOCAL(args, node, idx, lvar_level);
             }
-            ADD_SEND(args, node, id_core_hash_merge_ptr, INT2FIX(i * 2 + 1));
-            flag |= VM_CALL_KW_SPLAT;
+
+//            ADD_SEND(args, node, id_core_hash_merge_ptr, INT2FIX(i * 2 + 1));
+//            flag |= VM_CALL_KW_SPLAT;
+            flag |= VM_CALL_KWARG;
         }
         else if (local_body->param.flags.has_kwrest) {
             int idx = local_body->local_table_size - local_kwd->rest_start;
@@ -9122,7 +9154,7 @@ compile_super(rb_iseq_t *iseq, LINK_ANCHOR *const ret, const NODE *const node, i
     }
 
     flag |= VM_CALL_SUPER | VM_CALL_FCALL;
-    if (type == NODE_ZSUPER) flag |= VM_CALL_ZSUPER;
+//    if (type == NODE_ZSUPER) flag |= VM_CALL_ZSUPER;
     ADD_INSN(ret, node, putself);
     ADD_SEQ(ret, args);
     ADD_INSN2(ret, node, invokesuper,
