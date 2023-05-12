@@ -240,7 +240,8 @@ def disasm(debugger, command, result, internal_dict):
         val = target.EvaluateExpression(command)
     error = val.GetError()
     if error.Fail():
-        print >> result, error
+        print(result)
+        print(error)
         return
 
     disassembler.disasm(val);

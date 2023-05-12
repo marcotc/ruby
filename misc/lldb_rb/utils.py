@@ -69,7 +69,7 @@ class RbInspector(LLDBInterface):
         elif num == rbUndef:
             print('undef', file=self.result)
         elif self.fixnum_p(num):
-            print(num >> 1, file=self.result)
+            print("FIXNUM: %d" % (num >> 1), file=self.result)
         elif self.flonum_p(num):
             self._append_command_output("print rb_float_value(%0#x)" % val.GetValueAsUnsigned())
         elif self.static_sym_p(num):
